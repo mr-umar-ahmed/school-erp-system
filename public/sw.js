@@ -3,7 +3,7 @@
  * - network-first for page navigations with /offline fallback
  * - stale-while-revalidate for other same-origin GETs (except RSC payloads)
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const STATIC_CACHE = `edunexus-static-${VERSION}`;
 const RUNTIME_CACHE = `edunexus-runtime-${VERSION}`;
 
@@ -59,6 +59,9 @@ self.addEventListener("fetch", (event) => {
   // React Server Component payloads share URLs with HTML pages —
   // never cache them or the router would render stale trees.
   if (request.headers.get("RSC") === "1") return;
+
+  // API responses are private (auth-scoped files, exports) — never cache.
+  if (url.pathname.startsWith("/api/")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(

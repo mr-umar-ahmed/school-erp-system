@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { GlassmorphicCard } from "@/components/shared/glassmorphic-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { AttachmentList } from "@/components/shared/attachment-list";
+import { parseStoredFileUrl, isImageAttachment } from "@/lib/uploads";
 import { SubmitDialog } from "./submit-dialog";
 
 export const metadata: Metadata = { title: "Assignments" };
@@ -61,6 +63,22 @@ export default async function StudentAssignmentsPage() {
                       {a.description}
                     </p>
                   )}
+                  {a.attachmentUrls.length > 0 && (
+                    <div className="mt-2">
+                      <p className="mb-1 text-xs font-semibold text-muted-foreground">
+                        From your teacher
+                      </p>
+                      <AttachmentList urls={a.attachmentUrls} />
+                    </div>
+                  )}
+                  {submission && submission.attachmentUrls.length > 0 && (
+                    <div className="mt-2">
+                      <p className="mb-1 text-xs font-semibold text-muted-foreground">
+                        Your submission
+                      </p>
+                      <AttachmentList urls={submission.attachmentUrls} />
+                    </div>
+                  )}
                   {submission?.feedback && (
                     <p className="mt-2 rounded-xl bg-success/10 px-3 py-2 text-xs">
                       <strong>Feedback:</strong> {submission.feedback}
@@ -93,6 +111,22 @@ export default async function StudentAssignmentsPage() {
                       assignmentId={a.id}
                       title={a.title}
                       existingContent={submission?.content}
+                      existingAttachments={(
+                        submission?.attachmentUrls ?? []
+                      ).flatMap((url) => {
+                        const meta = parseStoredFileUrl(url);
+                        return meta
+                          ? [
+                              {
+                                url,
+                                name: meta.name,
+                                mimeType: isImageAttachment(meta.name)
+                                  ? "image/*"
+                                  : "application/pdf",
+                              },
+                            ]
+                          : [];
+                      })}
                     />
                   )}
                 </div>

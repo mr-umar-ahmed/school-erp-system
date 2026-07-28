@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireRole, requireUser, institutionScope } from "@/lib/auth/dal";
+import { verifyOwnAttachments } from "@/lib/attachments";
+import { MAX_ATTACHMENTS } from "@/lib/uploads";
 
 const announcementSchema = z.object({
   title: z.string().min(3, "Title is required"),
@@ -13,6 +15,7 @@ const announcementSchema = z.object({
     .array(z.enum(["teacher", "student", "parent", "staff"]))
     .default([]),
   isPinned: z.boolean().default(false),
+  attachmentUrls: z.array(z.string()).max(MAX_ATTACHMENTS).default([]),
 });
 export type AnnouncementInput = z.input<typeof announcementSchema>;
 
@@ -25,6 +28,12 @@ export async function createAnnouncement(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
+  const attachments = await verifyOwnAttachments(
+    user,
+    parsed.data.attachmentUrls
+  );
+  if ("error" in attachments) return { error: attachments.error };
+
   await prisma.announcement.create({
     data: {
       institutionId,
@@ -34,6 +43,7 @@ export async function createAnnouncement(
       targetRoles: parsed.data.targetRoles,
       isPinned: parsed.data.isPinned,
       authorId: user.id,
+      attachmentUrls: attachments.urls,
     },
   });
   revalidatePath("/admin/communication");

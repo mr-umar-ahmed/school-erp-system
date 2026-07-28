@@ -2,6 +2,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Pin } from "lucide-react";
 import { PriorityBadge } from "@/components/shared/priority-badge";
 import { EmptyState } from "@/components/shared/empty-state";
+import { AttachmentList } from "@/components/shared/attachment-list";
 import type { PriorityLevel } from "@/lib/generated/prisma/enums";
 
 export interface AnnouncementItem {
@@ -12,6 +13,7 @@ export interface AnnouncementItem {
   isPinned: boolean;
   publishedAt: string;
   author: string;
+  attachmentUrls?: string[];
 }
 
 export function AnnouncementFeed({ items }: { items: AnnouncementItem[] }) {
@@ -30,6 +32,7 @@ export function AnnouncementFeed({ items }: { items: AnnouncementItem[] }) {
             <PriorityBadge priority={a.priority} />
           </div>
           <p className="mt-2 text-sm text-secondary-foreground">{a.content}</p>
+          <AttachmentList urls={a.attachmentUrls ?? []} className="mt-3" />
           <p className="mt-3 text-xs text-muted-foreground">
             {a.author} •{" "}
             {formatDistanceToNow(new Date(a.publishedAt), { addSuffix: true })}

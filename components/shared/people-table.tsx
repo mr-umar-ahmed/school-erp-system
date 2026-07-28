@@ -79,7 +79,13 @@ const columns: Column<PersonRow>[] = [
   },
 ];
 
-export function PeopleTable({ rows }: { rows: PersonRow[] }) {
+export function PeopleTable({
+  rows,
+  toolbar,
+}: {
+  rows: PersonRow[];
+  toolbar?: React.ReactNode;
+}) {
   return (
     <DataTable
       rows={rows}
@@ -88,6 +94,7 @@ export function PeopleTable({ rows }: { rows: PersonRow[] }) {
       searchPlaceholder="Search by name, department, employee ID..."
       pageSize={12}
       emptyTitle="No records found"
+      toolbar={toolbar}
     />
   );
 }

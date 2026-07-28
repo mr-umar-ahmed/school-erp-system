@@ -30,6 +30,7 @@ export async function getAnnouncementsForRole(
     isPinned: a.isPinned,
     publishedAt: a.publishedAt.toISOString(),
     author: `${a.author.firstName} ${a.author.lastName}`,
+    attachmentUrls: a.attachmentUrls,
   }));
 }
 

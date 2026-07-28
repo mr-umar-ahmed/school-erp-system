@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireRole, institutionScope } from "@/lib/auth/dal";
+import { verifyOwnAttachments } from "@/lib/attachments";
+import { MAX_ATTACHMENTS } from "@/lib/uploads";
 
 const assignmentSchema = z.object({
   title: z.string().min(3, "Title is required"),
@@ -12,6 +14,7 @@ const assignmentSchema = z.object({
   sectionId: z.string().uuid().optional(),
   dueDate: z.string().min(1, "Due date is required"),
   maxMarks: z.number().positive().optional(),
+  attachmentUrls: z.array(z.string()).max(MAX_ATTACHMENTS).default([]),
 });
 export type AssignmentInput = z.infer<typeof assignmentSchema>;
 
@@ -33,6 +36,12 @@ export async function createAssignment(
   });
   if (!cs) return { error: "You don't teach that class & subject" };
 
+  const attachments = await verifyOwnAttachments(
+    user,
+    parsed.data.attachmentUrls
+  );
+  if ("error" in attachments) return { error: attachments.error };
+
   await prisma.assignment.create({
     data: {
       institutionId,
@@ -44,6 +53,7 @@ export async function createAssignment(
       teacherId: user.id,
       dueDate: new Date(parsed.data.dueDate),
       maxMarks: parsed.data.maxMarks ?? null,
+      attachmentUrls: attachments.urls,
     },
   });
   revalidatePath("/teacher/assignments");
@@ -52,7 +62,8 @@ export async function createAssignment(
 
 const submitSchema = z.object({
   assignmentId: z.string().uuid(),
-  content: z.string().min(1, "Write something before submitting"),
+  content: z.string().optional(),
+  attachmentUrls: z.array(z.string()).max(MAX_ATTACHMENTS).default([]),
 });
 export type SubmitInput = z.infer<typeof submitSchema>;
 
@@ -65,6 +76,16 @@ export async function submitAssignment(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
+  const content = parsed.data.content?.trim() ?? "";
+  if (!content && parsed.data.attachmentUrls.length === 0) {
+    return { error: "Write something or attach a file before submitting" };
+  }
+  const attachments = await verifyOwnAttachments(
+    user,
+    parsed.data.attachmentUrls
+  );
+  if ("error" in attachments) return { error: attachments.error };
+
   const student = await prisma.student.findUnique({
     where: { id: user.student.id },
     select: { sectionId: true, section: { select: { classId: true } } },
@@ -88,9 +109,14 @@ export async function submitAssignment(
     create: {
       assignmentId: assignment.id,
       studentId: user.student.id,
-      content: parsed.data.content,
+      content: content || null,
+      attachmentUrls: attachments.urls,
     },
-    update: { content: parsed.data.content, submittedAt: new Date() },
+    update: {
+      content: content || null,
+      attachmentUrls: attachments.urls,
+      submittedAt: new Date(),
+    },
   });
   revalidatePath("/student/assignments");
   return { success: "Assignment submitted" };

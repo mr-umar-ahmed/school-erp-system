@@ -137,6 +137,7 @@ model Institution {
   inventoryItems  InventoryItem[]
   visitorLogs     VisitorLog[]
   gradeScales     GradeScale[]
+  storedFiles     StoredFile[]
 
   @@map("institutions")
 }
@@ -182,6 +183,7 @@ model User {
   notifications       Notification[]
   auditLogs           AuditLog[]
   passwordResetTokens PasswordResetToken[]
+  uploadedFiles       StoredFile[]         @relation("StoredFileUploader")
 
   @@index([institutionId])
   @@index([role])
@@ -879,6 +881,28 @@ model VisitorLog {
 
   @@index([institutionId])
   @@map("visitor_logs")
+}
+
+// ---------- Files ----------
+
+// Uploaded files (assignment PDFs, photos, announcement attachments) stored
+// as bytea so the app stays deployable on hosts without a writable disk
+// (Vercel). Served through /api/files/[id] with auth + institution scoping.
+model StoredFile {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @db.Uuid
+  uploaderId    String   @db.Uuid
+  name          String
+  mimeType      String
+  size          Int
+  data          Bytes
+  createdAt     DateTime @default(now())
+
+  institution Institution @relation(fields: [institutionId], references: [id])
+  uploader    User        @relation("StoredFileUploader", fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@map("stored_files")
 }
 
 // ---------- Notifications / Audit ----------

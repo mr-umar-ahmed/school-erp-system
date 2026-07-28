@@ -16,6 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createAssignment } from "@/features/assignments/actions";
+import {
+  FileUpload,
+  type UploadedAttachment,
+} from "@/components/forms/file-upload";
 
 export function AssignmentForm({
   classSubjects,
@@ -29,6 +33,7 @@ export function AssignmentForm({
   const [classSubjectId, setClassSubjectId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [maxMarks, setMaxMarks] = useState("20");
+  const [attachments, setAttachments] = useState<UploadedAttachment[]>([]);
 
   const submit = () => {
     startTransition(async () => {
@@ -38,6 +43,7 @@ export function AssignmentForm({
         classSubjectId,
         dueDate,
         maxMarks: maxMarks ? Number(maxMarks) : undefined,
+        attachmentUrls: attachments.map((a) => a.url),
       });
       if (result.error) toast.error(result.error);
       if (result.success) {
@@ -98,6 +104,17 @@ export function AssignmentForm({
             onChange={(e) => setMaxMarks(e.target.value)}
           />
         </div>
+      </div>
+      <div className="space-y-1.5">
+        <Label>Attachments</Label>
+        <FileUpload
+          attachments={attachments}
+          onChange={setAttachments}
+          disabled={isPending}
+        />
+        <p className="text-xs text-muted-foreground">
+          Share the homework sheet as a PDF or snap a photo of it.
+        </p>
       </div>
       <Button onClick={submit} disabled={isPending} className="rounded-full">
         <NotebookPen className="size-4" />

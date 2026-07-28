@@ -7,6 +7,8 @@ import { MarksEntry } from "@/components/forms/marks-entry";
 import { GlassmorphicCard } from "@/components/shared/glassmorphic-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { ImportDialog } from "@/components/forms/import-dialog";
+import { importMarks } from "@/features/import/actions";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Gradebook" };
@@ -122,11 +124,26 @@ export default async function GradebookPage({
           <div className="xl:col-span-2">
             {selected ? (
               <GlassmorphicCard>
-                <h2 className="mb-3 text-lg">
-                  {selected.examination.name} — {selected.schoolClass.name}{" "}
-                  {selected.subject.name}
-                </h2>
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-lg">
+                    {selected.examination.name} — {selected.schoolClass.name}{" "}
+                    {selected.subject.name}
+                  </h2>
+                  <ImportDialog
+                    title="Import marks from a spreadsheet"
+                    description="The template already lists every student in this class — just fill in the Marks column and upload it back."
+                    templateHref={`/api/templates/marks?schedule=${selected.id}`}
+                    action={importMarks}
+                    extraFields={{ examScheduleId: selected.id }}
+                    triggerLabel="Import marks"
+                  />
+                </div>
                 <MarksEntry
+                  // Remount after an import so the grid shows the new marks
+                  // instead of the state it was first mounted with.
+                  key={`${selected.id}:${roster
+                    .map((st) => st.examResults[0]?.id ?? "")
+                    .join("")}`}
                   examScheduleId={selected.id}
                   totalMarks={Number(selected.totalMarks)}
                   rows={roster.map((st) => ({

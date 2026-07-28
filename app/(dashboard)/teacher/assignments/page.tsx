@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { format } from "date-fns";
-import { ChevronRight, NotebookPen, Plus } from "lucide-react";
+import { ChevronRight, NotebookPen, Paperclip, Plus } from "lucide-react";
 import { requireRole } from "@/lib/auth/dal";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -65,6 +65,13 @@ export default async function TeacherAssignmentsPage() {
                     {a.section ? `-${a.section.name}` : ""} • due{" "}
                     {format(a.dueDate, "d MMM")}
                   </p>
+                  {a.attachmentUrls.length > 0 && (
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-primary">
+                      <Paperclip className="size-3" />
+                      {a.attachmentUrls.length} attachment
+                      {a.attachmentUrls.length > 1 ? "s" : ""}
+                    </p>
+                  )}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Badge className="rounded-full bg-primary/12 text-primary">

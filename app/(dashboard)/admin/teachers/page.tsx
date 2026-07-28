@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { requireRole, institutionScope } from "@/lib/auth/dal";
 import { prisma } from "@/lib/prisma";
 import { PeopleTable } from "@/components/shared/people-table";
+import { ImportDialog } from "@/components/forms/import-dialog";
+import { importTeachers } from "@/features/import/actions";
 
 export const metadata: Metadata = { title: "Teachers" };
 
@@ -24,6 +26,16 @@ export default async function TeachersPage() {
         </p>
       </div>
       <PeopleTable
+        toolbar={
+          user.role === "staff" ? undefined : (
+            <ImportDialog
+              title="Import teachers from a spreadsheet"
+              description="Bulk-add teaching staff from Excel or CSV. Each teacher is created with the default password Teacher@123."
+              templateHref="/api/templates/teachers"
+              action={importTeachers}
+            />
+          )
+        }
         rows={teachers.map((t) => ({
           id: t.id,
           employeeId: t.employeeId,

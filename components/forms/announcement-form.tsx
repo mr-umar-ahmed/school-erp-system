@@ -16,6 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createAnnouncement } from "@/features/communication/actions";
+import {
+  FileUpload,
+  type UploadedAttachment,
+} from "@/components/forms/file-upload";
 
 const ROLES = [
   { value: "teacher", label: "Teachers" },
@@ -31,6 +35,7 @@ export function AnnouncementForm() {
   const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
   const [targetRoles, setTargetRoles] = useState<string[]>([]);
   const [isPinned, setIsPinned] = useState(false);
+  const [attachments, setAttachments] = useState<UploadedAttachment[]>([]);
 
   const submit = () => {
     startTransition(async () => {
@@ -40,6 +45,7 @@ export function AnnouncementForm() {
         priority,
         targetRoles: targetRoles as ("teacher" | "student" | "parent" | "staff")[],
         isPinned,
+        attachmentUrls: attachments.map((a) => a.url),
       });
       if (result.error) toast.error(result.error);
       if (result.success) {
@@ -48,6 +54,7 @@ export function AnnouncementForm() {
         setContent("");
         setTargetRoles([]);
         setIsPinned(false);
+        setAttachments([]);
       }
     });
   };
@@ -88,6 +95,14 @@ export function AnnouncementForm() {
           placeholder="Write the announcement..."
           value={content}
           onChange={(e) => setContent(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label>Attachments</Label>
+        <FileUpload
+          attachments={attachments}
+          onChange={setAttachments}
+          disabled={isPending}
         />
       </div>
       <div className="flex flex-wrap items-center gap-4">

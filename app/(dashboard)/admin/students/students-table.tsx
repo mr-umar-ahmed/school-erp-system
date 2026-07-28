@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/shared/data-table";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { ImportDialog } from "@/components/forms/import-dialog";
+import { importStudents } from "@/features/import/actions";
 
 export interface StudentRow {
   id: string;
@@ -85,12 +87,20 @@ export function StudentsTable({ rows }: { rows: StudentRow[] }) {
       emptyTitle="No students found"
       onRowClick={(r) => router.push(`/admin/students/${r.id}`)}
       toolbar={
-        <Button asChild className="rounded-full">
-          <Link href="/admin/students/new">
-            <UserPlus className="size-4" />
-            Add Student
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <ImportDialog
+            title="Import students from a spreadsheet"
+            description="Bulk-enrol students from Excel or CSV. Each student is created with the default password Student@123."
+            templateHref="/api/templates/students"
+            action={importStudents}
+          />
+          <Button asChild className="rounded-full">
+            <Link href="/admin/students/new">
+              <UserPlus className="size-4" />
+              Add Student
+            </Link>
+          </Button>
+        </div>
       }
     />
   );

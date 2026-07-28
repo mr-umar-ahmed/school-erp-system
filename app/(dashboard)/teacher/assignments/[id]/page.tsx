@@ -7,6 +7,7 @@ import { GlassmorphicCard } from "@/components/shared/glassmorphic-card";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Badge } from "@/components/ui/badge";
+import { AttachmentList } from "@/components/shared/attachment-list";
 import { GradeRow } from "./grade-row";
 
 export const metadata: Metadata = { title: "Assignment" };
@@ -60,6 +61,7 @@ export default async function AssignmentDetailPage({
             {assignment.description}
           </p>
         )}
+        <AttachmentList urls={assignment.attachmentUrls} className="mt-3" />
       </GlassmorphicCard>
 
       <GlassmorphicCard>
@@ -104,6 +106,7 @@ export default async function AssignmentDetailPage({
                     {s.content}
                   </p>
                 )}
+                <AttachmentList urls={s.attachmentUrls} className="mt-3" />
               </li>
             ))}
           </ul>
