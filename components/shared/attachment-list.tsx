@@ -13,9 +13,15 @@ function downloadHref(url: string): string {
 export function AttachmentList({
   urls,
   className,
+  /**
+   * "on-primary" inherits the surrounding text colour — needed inside filled
+   * message bubbles, where the default primary-on-tint pill is invisible.
+   */
+  tone = "default",
 }: {
   urls: string[];
   className?: string;
+  tone?: "default" | "on-primary";
 }) {
   const files = urls
     .map((url) => ({ url, meta: parseStoredFileUrl(url) }))
@@ -55,7 +61,12 @@ export function AttachmentList({
             <li key={f.url}>
               <a
                 href={downloadHref(f.url)}
-                className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
+                  tone === "on-primary"
+                    ? "bg-white/20 text-current hover:bg-white/30"
+                    : "bg-primary/10 text-primary hover:bg-primary/20"
+                )}
               >
                 <FileText className="size-4" />
                 <span className="max-w-48 truncate">{f.meta!.name}</span>

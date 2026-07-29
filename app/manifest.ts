@@ -2,10 +2,14 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    // A stable id keeps the browser treating this as the same installed app
+    // across deploys even if start_url ever changes.
+    id: "/",
     name: "EduNexus — School Management System",
     short_name: "EduNexus",
     description: "Complete School ERP & Management Platform",
     start_url: "/",
+    scope: "/",
     display: "standalone",
     background_color: "#E8F5E9",
     theme_color: "#4CAF50",

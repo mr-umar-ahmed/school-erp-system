@@ -30,9 +30,14 @@ Demo tenant: **Green Valley International School** (seeded — 500 students,
 ## Hard rules (non-negotiable)
 
 1. **No paid APIs or SaaS, ever.** Everything must be free, open-source, or
-   self-hostable. No Supabase, Resend, Sentry, Vercel-specific features,
-   paid LLM APIs, etc. (This project deliberately swapped the original
-   Supabase-based spec for a self-hosted stack.)
+   self-hostable. No Resend, Sentry, paid LLM APIs, etc. (This project
+   deliberately swapped the original Supabase-based spec for a self-hosted
+   stack.)
+   - **Managed PostgreSQL is allowed as a host** (Supabase, Neon, Vercel
+     Postgres free tiers) — it is still plain Postgres behind `DATABASE_URL`.
+     What stays banned is adopting a vendor's *SDK or auth*: never add
+     `@supabase/supabase-js`/`@supabase/ssr`. Auth is ours (`lib/auth/*`) and
+     data access is Prisma. See `DEPLOYMENT.md`.
 2. **TypeScript strict, zero `any`.**
 3. **Authorization on the server, always.** Every server action and query
    must call `requireRole(...)`/`requireUser()` from `lib/auth/dal.ts` and
@@ -63,7 +68,22 @@ Demo tenant: **Green Valley International School** (seeded — 500 students,
   React Hook Form + Zod v4 for forms.
 - **PWA:** `app/manifest.ts`, custom `public/sw.js`, install banner,
   `/offline` fallback. **The service worker registers in production builds
-  only** — in dev its cache-first strategy serves stale chunks.
+  only** — in dev its cache-first strategy serves stale chunks. Because
+  Chromium requires a live service worker before it fires
+  `beforeinstallprompt`, **installing is impossible under `pnpm dev`**;
+  `useInstallPrompt` detects that and the UI falls back to manual
+  instructions naming the missing prerequisite.
+- **File uploads:** PDFs/images stored as `bytea` in `StoredFile`, uploaded
+  via `POST /api/files` and served by `GET /api/files/[id]` (session +
+  institution checked on every read). Client control is
+  `components/forms/file-upload.tsx` (includes camera capture); render with
+  `components/shared/attachment-list.tsx`. Attachment URLs coming from a
+  client must always be revalidated with `verifyOwnAttachments()` from
+  `lib/attachments.ts` before being persisted.
+- **Spreadsheets:** `exceljs` (declared in `serverExternalPackages`).
+  `lib/spreadsheet.ts` parses and builds templates; import actions live in
+  `features/import/actions.ts`; templates are served from
+  `/api/templates/[kind]`.
 - **Email:** stubbed to server console in `lib/email.ts` (swap for SMTP in
   production).
 
@@ -129,7 +149,12 @@ Demo logins (password pattern `<Role>@123`): `admin@edunexus.app`,
   Razorpay/Stripe integration would go in `features/fees/actions.ts`.
 - PDF export = browser print dialog; a Playwright/Puppeteer render pipeline
   is the intended upgrade.
-- File uploads (avatars, assignment attachments) are schema-ready
-  (`attachmentUrls`) but no storage backend is wired yet — use local
-  filesystem or MinIO, not a paid bucket.
+- Attachments live in Postgres (`bytea`), which is fine for a demo but will
+  exhaust a 500MB free tier at scale — moving them to MinIO/Supabase Storage
+  only requires changing `lib/uploads.ts` and `app/api/files/*`.
+- Avatar upload still isn't wired (`avatarUrl` is unused); the `FileUpload`
+  component is ready for it.
 - Push notifications: service worker handlers exist; no web-push sender yet.
+- The service worker caches authenticated page HTML in `RUNTIME_CACHE`, so on
+  a shared device a signed-out user could read cached pages offline. Scope the
+  navigation cache per user (or drop it) before a real deployment.

@@ -740,6 +740,7 @@ model Message {
   recipientId     String    @db.Uuid
   subject         String?
   content         String
+  attachmentUrls  String[]  @default([])
   isRead          Boolean   @default(false)
   readAt          DateTime?
   parentMessageId String?   @db.Uuid

@@ -2,20 +2,42 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Download, Share, SquarePlus, X } from "lucide-react";
+import { Download, Loader2, X } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { InstallHelpDialog } from "@/components/shared/install-help-dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useInstallPrompt } from "@/hooks/use-install-prompt";
+  useInstallPrompt,
+  type InstallBlocker,
+} from "@/hooks/use-install-prompt";
 
 export function InstallBanner() {
-  const { visible, ios, install, dismiss } = useInstallPrompt();
-  const [showIosHelp, setShowIosHelp] = useState(false);
+  const { visible, ios, status, canInstall, diagnose, install, dismiss } =
+    useInstallPrompt();
+  const [showHelp, setShowHelp] = useState(false);
+  const [blocker, setBlocker] = useState<InstallBlocker>(null);
+
+  const openHelp = async () => {
+    setBlocker(await diagnose());
+    setShowHelp(true);
+  };
+
+  const onInstall = async () => {
+    if (ios || !canInstall) {
+      await openHelp();
+      return;
+    }
+    const outcome = await install();
+    if (outcome === "accepted") {
+      toast.success("Installing EduNexus — check your home screen or app list");
+    } else if (outcome === "dismissed") {
+      toast("Install cancelled — you can install any time from the header");
+    } else {
+      await openHelp();
+    }
+  };
+
+  const busy = status === "prompting";
 
   return (
     <>
@@ -39,10 +61,15 @@ export function InstallBanner() {
                 size="sm"
                 variant="secondary"
                 className="rounded-full"
-                onClick={() => (ios ? setShowIosHelp(true) : install())}
+                disabled={busy}
+                onClick={onInstall}
               >
-                <Download className="size-4" />
-                Install Now
+                {busy ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Download className="size-4" />
+                )}
+                {busy ? "Opening..." : "Install Now"}
               </Button>
               <button
                 onClick={dismiss}
@@ -56,36 +83,12 @@ export function InstallBanner() {
         )}
       </AnimatePresence>
 
-      <Dialog open={showIosHelp} onOpenChange={setShowIosHelp}>
-        <DialogContent className="glass-strong rounded-3xl">
-          <DialogHeader>
-            <DialogTitle>Install EduNexus on iOS</DialogTitle>
-            <DialogDescription>
-              Safari installs web apps from the Share menu.
-            </DialogDescription>
-          </DialogHeader>
-          <ol className="space-y-3 text-sm">
-            <li className="flex items-center gap-3">
-              <span className="glass-icon flex size-9 shrink-0 items-center justify-center rounded-xl">
-                <Share className="size-4" />
-              </span>
-              1. Tap the <strong>Share</strong> button in Safari
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="glass-icon flex size-9 shrink-0 items-center justify-center rounded-xl">
-                <SquarePlus className="size-4" />
-              </span>
-              2. Choose <strong>Add to Home Screen</strong>
-            </li>
-            <li className="flex items-center gap-3">
-              <span className="glass-icon flex size-9 shrink-0 items-center justify-center rounded-xl">
-                <Download className="size-4" />
-              </span>
-              3. Tap <strong>Add</strong> — EduNexus appears on your home screen
-            </li>
-          </ol>
-        </DialogContent>
-      </Dialog>
+      <InstallHelpDialog
+        open={showHelp}
+        onOpenChange={setShowHelp}
+        blocker={blocker}
+        ios={ios}
+      />
     </>
   );
 }

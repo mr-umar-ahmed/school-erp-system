@@ -35,6 +35,7 @@ import {
   NotificationBell,
   type NotificationItem,
 } from "@/components/shared/notification-bell";
+import { InstallAppButton } from "@/components/shared/install-app-button";
 import { SidebarDrawerContent } from "@/components/layout/sidebar";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { useOnlineStatus } from "@/hooks/use-online-status";
@@ -145,6 +146,8 @@ export function Header({
         <Sun className="size-5 dark:hidden" />
         <Moon className="hidden size-5 dark:block" />
       </Button>
+
+      <InstallAppButton />
 
       <NotificationBell notifications={notifications} />
 

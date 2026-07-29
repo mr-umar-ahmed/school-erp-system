@@ -16,6 +16,11 @@ import {
 } from "@/components/ui/select";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { EmptyState } from "@/components/shared/empty-state";
+import { AttachmentList } from "@/components/shared/attachment-list";
+import {
+  FileUpload,
+  type UploadedAttachment,
+} from "@/components/forms/file-upload";
 import { sendMessage } from "@/features/communication/actions";
 import type { Conversation } from "@/features/communication/queries";
 import { ROLE_LABELS } from "@/lib/constants";
@@ -25,6 +30,7 @@ export interface ThreadMessage {
   id: string;
   content: string;
   subject: string | null;
+  attachmentUrls?: string[];
   mine: boolean;
   createdAt: string;
 }
@@ -47,20 +53,23 @@ export function MessageCenter({
   const [isPending, startTransition] = useTransition();
   const [draft, setDraft] = useState("");
   const [composeTo, setComposeTo] = useState("");
+  const [attachments, setAttachments] = useState<UploadedAttachment[]>([]);
 
   const openThread = (userId: string) =>
     router.push(`${pathname}?with=${userId}`);
 
   const send = (recipientId: string) => {
-    if (!draft.trim()) return;
+    if (!draft.trim() && attachments.length === 0) return;
     startTransition(async () => {
       const result = await sendMessage({
         recipientId,
         content: draft.trim(),
+        attachmentUrls: attachments.map((a) => a.url),
       });
       if (result.error) toast.error(result.error);
       if (result.success) {
         setDraft("");
+        setAttachments([]);
         router.refresh();
       }
     });
@@ -171,7 +180,14 @@ export function MessageCenter({
                       {m.subject}
                     </p>
                   )}
-                  <p>{m.content}</p>
+                  {m.content && <p>{m.content}</p>}
+                  {m.attachmentUrls && m.attachmentUrls.length > 0 && (
+                    <AttachmentList
+                      urls={m.attachmentUrls}
+                      tone={m.mine ? "on-primary" : "default"}
+                      className={m.content ? "mt-2" : undefined}
+                    />
+                  )}
                   <p
                     className={cn(
                       "mt-1 text-[10px]",
@@ -187,23 +203,32 @@ export function MessageCenter({
                 </div>
               ))}
             </div>
-            <div className="flex items-end gap-2 border-t border-border pt-3">
-              <Textarea
-                rows={2}
-                placeholder="Write a message..."
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                className="flex-1 resize-none"
+            <div className="space-y-2 border-t border-border pt-3">
+              <div className="flex items-end gap-2">
+                <Textarea
+                  rows={2}
+                  placeholder="Write a message..."
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  className="flex-1 resize-none"
+                />
+                <Button
+                  size="icon"
+                  className="rounded-full"
+                  disabled={
+                    isPending || (!draft.trim() && attachments.length === 0)
+                  }
+                  onClick={() => send(activeUserId)}
+                  aria-label="Send message"
+                >
+                  <Send className="size-4" />
+                </Button>
+              </div>
+              <FileUpload
+                attachments={attachments}
+                onChange={setAttachments}
+                disabled={isPending}
               />
-              <Button
-                size="icon"
-                className="rounded-full"
-                disabled={isPending || !draft.trim()}
-                onClick={() => send(activeUserId)}
-                aria-label="Send message"
-              >
-                <Send className="size-4" />
-              </Button>
             </div>
           </>
         )}

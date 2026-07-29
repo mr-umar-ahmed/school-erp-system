@@ -89,6 +89,7 @@ export async function getThread(userId: string, otherId: string) {
     id: m.id,
     content: m.content,
     subject: m.subject,
+    attachmentUrls: m.attachmentUrls,
     mine: m.senderId === userId,
     createdAt: m.createdAt.toISOString(),
   }));

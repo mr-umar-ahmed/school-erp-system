@@ -53,8 +53,9 @@ export async function createAnnouncement(
 const messageSchema = z.object({
   recipientId: z.string().uuid(),
   subject: z.string().optional(),
-  content: z.string().min(1, "Message can't be empty"),
+  content: z.string().optional(),
   parentMessageId: z.string().uuid().optional(),
+  attachmentUrls: z.array(z.string()).max(MAX_ATTACHMENTS).default([]),
 });
 export type MessageInput = z.infer<typeof messageSchema>;
 
@@ -67,6 +68,16 @@ export async function sendMessage(
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
+  const content = parsed.data.content?.trim() ?? "";
+  if (!content && parsed.data.attachmentUrls.length === 0) {
+    return { error: "Write a message or attach a file" };
+  }
+  const attachments = await verifyOwnAttachments(
+    user,
+    parsed.data.attachmentUrls
+  );
+  if ("error" in attachments) return { error: attachments.error };
+
   const recipient = await prisma.user.findFirst({
     where: { id: parsed.data.recipientId, institutionId, isActive: true },
   });
@@ -79,7 +90,8 @@ export async function sendMessage(
         senderId: user.id,
         recipientId: recipient.id,
         subject: parsed.data.subject || null,
-        content: parsed.data.content,
+        content,
+        attachmentUrls: attachments.urls,
         parentMessageId: parsed.data.parentMessageId ?? null,
       },
     }),
@@ -87,7 +99,9 @@ export async function sendMessage(
       data: {
         userId: recipient.id,
         title: `New message from ${user.firstName} ${user.lastName}`,
-        message: parsed.data.content.slice(0, 120),
+        message: content
+          ? content.slice(0, 120)
+          : `Sent ${attachments.urls.length} attachment(s)`,
         type: "general",
       },
     }),
