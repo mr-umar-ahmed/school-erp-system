@@ -45,14 +45,16 @@ export default async function ReportsPage() {
   for (const r of publishedResults) {
     const cls = r.examSchedule.schoolClass;
     const entry = perf.get(cls.id) ?? { name: cls.name, sum: 0, count: 0 };
-    entry.sum +=
-      (Number(r.marksObtained) / Number(r.examSchedule.totalMarks)) * 100;
-    entry.count += 1;
+    const total = Number(r.examSchedule.totalMarks);
+    if (total > 0) {
+      entry.sum += (Number(r.marksObtained) / total) * 100;
+      entry.count += 1;
+    }
     perf.set(cls.id, entry);
   }
   const classPerformance = classes.map((c) => ({
     label: c.name.replace("Class ", "C"),
-    value: perf.has(c.id)
+    value: perf.has(c.id) && perf.get(c.id)!.count > 0
       ? Math.round(perf.get(c.id)!.sum / perf.get(c.id)!.count)
       : 0,
   }));

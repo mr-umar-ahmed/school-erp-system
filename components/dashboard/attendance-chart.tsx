@@ -35,7 +35,11 @@ export function AttendanceChart({
           />
           <XAxis
             dataKey="date"
-            tickFormatter={(d: string) => format(new Date(d), "d MMM")}
+            tickFormatter={(d: string) => {
+              if (!d) return "";
+              const date = new Date(d);
+              return isNaN(date.getTime()) ? String(d) : format(date, "d MMM");
+            }}
             tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
             tickLine={false}
             axisLine={false}
@@ -53,9 +57,11 @@ export function AttendanceChart({
             content={
               <ChartTooltip formatter={(v) => `${v}%`} />
             }
-            labelFormatter={(d) =>
-              typeof d === "string" ? format(new Date(d), "d MMM yyyy") : d
-            }
+            labelFormatter={(d) => {
+              if (!d) return "";
+              const date = new Date(d);
+              return isNaN(date.getTime()) ? String(d) : format(date, "d MMM yyyy");
+            }}
           />
           <Area
             type="monotone"
