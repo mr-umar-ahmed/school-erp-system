@@ -58,7 +58,7 @@ export function AttendanceChart({
               <ChartTooltip formatter={(v) => `${v}%`} />
             }
             labelFormatter={(d) => {
-              if (!d) return "";
+              if (!d || typeof d !== "string" && typeof d !== "number") return String(d);
               const date = new Date(d);
               return isNaN(date.getTime()) ? String(d) : format(date, "d MMM yyyy");
             }}
