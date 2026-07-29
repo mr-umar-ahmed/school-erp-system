@@ -50,8 +50,8 @@ export default async function TeacherDashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <GlassmorphicCard className="xl:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <GlassmorphicCard className="lg:col-span-2">
           <h2 className="mb-4 text-lg">Today&apos;s Schedule</h2>
           {data.todaySlots.length === 0 ? (
             <EmptyState

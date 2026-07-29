@@ -64,7 +64,7 @@ export default async function ParentAttendancePage({
           ))}
         </div>
       )}
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <GlassmorphicCard className="flex flex-col items-center justify-center gap-2">
           <ProgressRing
             value={total ? Math.round((present / total) * 100) : 0}
@@ -75,7 +75,7 @@ export default async function ParentAttendancePage({
             {selected.name} • {present} of {total} school days
           </p>
         </GlassmorphicCard>
-        <GlassmorphicCard className="xl:col-span-2">
+        <GlassmorphicCard className="lg:col-span-2">
           <AttendanceCalendar
             records={records.map((r) => ({
               date: format(r.date, "yyyy-MM-dd"),

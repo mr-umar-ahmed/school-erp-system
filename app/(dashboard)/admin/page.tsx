@@ -55,8 +55,8 @@ export default async function AdminDashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <GlassmorphicCard className="xl:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <GlassmorphicCard className="lg:col-span-2">
           <h2 className="mb-2 text-lg">Attendance Trend (30 days)</h2>
           <AttendanceChart data={data.attendanceTrend} />
         </GlassmorphicCard>
@@ -69,8 +69,8 @@ export default async function AdminDashboardPage() {
         </GlassmorphicCard>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <GlassmorphicCard className="xl:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <GlassmorphicCard className="lg:col-span-2">
           <h2 className="mb-2 text-lg">Fee Collection</h2>
           <RevenueChart data={data.revenueByMonth} />
         </GlassmorphicCard>

@@ -26,7 +26,7 @@ export default async function StudentAttendancePage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-extrabold">My Attendance</h1>
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <GlassmorphicCard className="flex flex-col items-center justify-center gap-2">
           <ProgressRing
             value={total ? Math.round((present / total) * 100) : 0}
@@ -37,7 +37,7 @@ export default async function StudentAttendancePage() {
             {present} of {total} school days attended • {absents} absences
           </p>
         </GlassmorphicCard>
-        <GlassmorphicCard className="xl:col-span-2">
+        <GlassmorphicCard className="lg:col-span-2">
           <AttendanceCalendar
             records={records.map((r) => ({
               date: format(r.date, "yyyy-MM-dd"),

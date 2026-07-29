@@ -48,6 +48,11 @@ Demo tenant: **Green Valley International School** (seeded — 500 students,
    `ModuleIcon`, `StatCard`, `DataTable`, `EmptyState`, ...) rather than
    inventing new card/table styles. Rounded-full buttons, `rounded-3xl`
    cards, Framer Motion micro-animations.
+   - **Three navigation tiers:** below `md` a hamburger drawer plus the bottom
+     tab bar; `md`–`lg` a 72px icon sidebar rail (labels hidden via
+     `hidden lg:block`, no hamburger, no bottom nav); `lg`+ the full 16rem
+     sidebar with the collapse toggle. Two-pane page layouts split at `lg`
+     (`lg:grid-cols-3` + `lg:col-span-2`) and stack below it.
 5. **Never commit `.env`** (holds `AUTH_SECRET` and DB password). It is
    gitignored — keep it that way.
 6. After each completed milestone: commit with a descriptive message and
@@ -155,6 +160,7 @@ Demo logins (password pattern `<Role>@123`): `admin@edunexus.app`,
 - Avatar upload still isn't wired (`avatarUrl` is unused); the `FileUpload`
   component is ready for it.
 - Push notifications: service worker handlers exist; no web-push sender yet.
-- The service worker caches authenticated page HTML in `RUNTIME_CACHE`, so on
-  a shared device a signed-out user could read cached pages offline. Scope the
-  navigation cache per user (or drop it) before a real deployment.
+- Offline support is deliberately limited to the app shell and `/offline`:
+  dashboard HTML is per-user, so the service worker never caches navigations
+  and sign-out purges every cache. Restoring offline reads of real data needs
+  a per-user cache partition, not a wider cache.

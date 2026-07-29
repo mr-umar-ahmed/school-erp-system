@@ -40,6 +40,7 @@ import { SidebarDrawerContent } from "@/components/layout/sidebar";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { logout } from "@/features/auth/actions";
+import { clearClientStorage } from "@/lib/clear-client-storage";
 import { getNavForRole } from "@/lib/navigation";
 import { ROLE_LABELS } from "@/lib/constants";
 import type { UserRole } from "@/lib/generated/prisma/enums";
@@ -87,7 +88,7 @@ export function Header({
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full lg:hidden"
+            className="rounded-full md:hidden"
             aria-label="Open navigation"
           >
             <Menu className="size-5" />
@@ -176,7 +177,13 @@ export function Header({
           </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
-            onClick={() => startTransition(() => logout())}
+            onClick={() =>
+              startTransition(async () => {
+                // Purge cached pages before the session goes away.
+                await clearClientStorage();
+                await logout();
+              })
+            }
           >
             <LogOut className="size-4" />
             Sign Out

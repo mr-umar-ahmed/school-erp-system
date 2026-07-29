@@ -71,7 +71,7 @@ export default async function GradebookPage({
       {myClassSubjects.length === 0 ? (
         <EmptyState title="No subjects assigned to you yet" />
       ) : (
-        <div className="grid gap-4 xl:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3">
           <GlassmorphicCard>
             <h2 className="mb-3 text-lg">My Exam Schedules</h2>
             {schedules.length === 0 ? (
@@ -121,7 +121,7 @@ export default async function GradebookPage({
             )}
           </GlassmorphicCard>
 
-          <div className="xl:col-span-2">
+          <div className="lg:col-span-2">
             {selected ? (
               <GlassmorphicCard>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-3">

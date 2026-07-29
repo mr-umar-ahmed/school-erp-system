@@ -41,7 +41,7 @@ export default async function StudentDashboardPage() {
         }
       />
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <GlassmorphicCard className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-lg">Attendance</h2>
@@ -102,8 +102,8 @@ export default async function StudentDashboardPage() {
         </GlassmorphicCard>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <GlassmorphicCard className="xl:col-span-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <GlassmorphicCard className="lg:col-span-2">
           <h2 className="mb-4 text-lg">Today&apos;s Timetable</h2>
           {data.todaySlots.length === 0 ? (
             <EmptyState

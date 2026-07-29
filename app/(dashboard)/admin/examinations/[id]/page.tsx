@@ -92,7 +92,7 @@ export default async function ExamDetailPage({
         />
       </GlassmorphicCard>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <GlassmorphicCard>
           <h2 className="mb-3 text-lg">Schedules</h2>
           {exam.schedules.length === 0 ? (
@@ -142,7 +142,7 @@ export default async function ExamDetailPage({
           )}
         </GlassmorphicCard>
 
-        <div className="xl:col-span-2">
+        <div className="lg:col-span-2">
           {selectedSchedule ? (
             <GlassmorphicCard>
               <h2 className="mb-3 text-lg">

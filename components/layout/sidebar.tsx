@@ -21,25 +21,46 @@ function isActive(pathname: string, href: string): boolean {
   return isAreaRoot ? pathname === href : pathname.startsWith(href);
 }
 
+/**
+ * Between md and lg the sidebar is always a 72px icon rail: there is room for
+ * persistent navigation but not for a 16rem panel. These classes express
+ * "hidden on the rail, shown once we reach lg" without needing a media-query
+ * hook, so there is no wrong-layout flash on first paint.
+ *
+ * `collapsed` (the user's own choice, only offered at lg) hides them at every
+ * width instead.
+ */
+function railHidden(collapsed: boolean): string {
+  return collapsed ? "hidden" : "hidden lg:block";
+}
+
 function NavLinks({
   sections,
   collapsed,
   pathname,
   onNavigate,
   layoutKey = "sidebar-active",
+  /** The drawer is always full width, so it opts out of the rail treatment. */
+  fullWidth = false,
 }: {
   sections: NavSection[];
   collapsed: boolean;
   pathname: string;
   onNavigate?: () => void;
   layoutKey?: string;
+  fullWidth?: boolean;
 }) {
   return (
     <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
       {sections.map((section, i) => (
         <div key={section.label ?? i}>
-          {section.label && !collapsed && (
-            <p className="px-3 pb-1 text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+          {section.label && (
+            <p
+              className={cn(
+                "px-3 pb-1 text-[10px] font-bold tracking-widest text-muted-foreground uppercase",
+                !fullWidth && railHidden(collapsed)
+              )}
+            >
               {section.label}
             </p>
           )}
@@ -50,12 +71,19 @@ function NavLinks({
                 <Link
                   href={item.href}
                   onClick={onNavigate}
+                  // Native tooltip so the icon rail is still readable at md,
+                  // where the text label is hidden.
+                  title={fullWidth ? undefined : item.label}
                   className={cn(
-                    "relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors",
+                    "relative flex items-center gap-3 rounded-2xl py-2.5 text-sm font-medium transition-colors",
                     active
                       ? "text-primary-foreground"
                       : "text-sidebar-foreground hover:bg-sidebar-accent",
-                    collapsed && "justify-center px-2"
+                    fullWidth
+                      ? "px-3"
+                      : collapsed
+                        ? "justify-center px-2"
+                        : "justify-center px-2 lg:justify-start lg:px-3"
                   )}
                 >
                   {active && (
@@ -66,14 +94,19 @@ function NavLinks({
                     />
                   )}
                   <item.icon className="relative z-10 size-5 shrink-0" />
-                  {!collapsed && (
-                    <span className="relative z-10 truncate">{item.label}</span>
-                  )}
+                  <span
+                    className={cn(
+                      "relative z-10 truncate",
+                      !fullWidth && railHidden(collapsed)
+                    )}
+                  >
+                    {item.label}
+                  </span>
                 </Link>
               );
               return (
                 <li key={item.href}>
-                  {collapsed ? (
+                  {collapsed && !fullWidth ? (
                     <Tooltip>
                       <TooltipTrigger asChild>{link}</TooltipTrigger>
                       <TooltipContent side="right">{item.label}</TooltipContent>
@@ -99,29 +132,39 @@ export function Sidebar({ role }: { role: UserRole }) {
   return (
     <aside
       className={cn(
-        "glass sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-sidebar-border transition-[width] duration-300 lg:flex",
-        collapsed ? "w-[4.5rem]" : "w-64"
+        // Icon rail from md, full panel from lg — tablets get persistent
+        // navigation instead of having to reopen the drawer every time.
+        "glass sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-sidebar-border transition-[width] duration-300 md:flex",
+        collapsed ? "w-[4.5rem]" : "w-[4.5rem] lg:w-64"
       )}
     >
       <div
         className={cn(
-          "flex items-center gap-2.5 px-4 py-5",
-          collapsed && "justify-center px-2"
+          "flex items-center gap-2.5 py-5",
+          collapsed
+            ? "justify-center px-2"
+            : "justify-center px-2 lg:justify-start lg:px-4"
         )}
       >
         <span className="glass-icon flex size-10 shrink-0 items-center justify-center rounded-xl">
           <GraduationCap className="size-5" />
         </span>
-        {!collapsed && (
-          <span className="font-heading text-lg font-extrabold">{APP_NAME}</span>
-        )}
+        <span
+          className={cn(
+            "font-heading text-lg font-extrabold",
+            railHidden(collapsed)
+          )}
+        >
+          {APP_NAME}
+        </span>
       </div>
 
       <NavLinks sections={sections} collapsed={collapsed} pathname={pathname} />
 
+      {/* Collapsing is only meaningful at lg — below that it is already a rail. */}
       <button
         onClick={toggleCollapsed}
-        className="m-3 flex items-center justify-center gap-2 rounded-2xl border border-sidebar-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent"
+        className="m-3 hidden items-center justify-center gap-2 rounded-2xl border border-sidebar-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent lg:flex"
         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {collapsed ? (
@@ -161,6 +204,7 @@ export function SidebarDrawerContent({
         pathname={pathname}
         onNavigate={onNavigate}
         layoutKey="sidebar-drawer-active"
+        fullWidth
       />
     </div>
   );
